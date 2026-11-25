@@ -210,9 +210,6 @@ export class Menus {
       x: 555, y: startY - 205, width: 164, height: 62, text: '设置', fontSize: 22, frame: this.assets.ui.button_glass!,
       onClick: () => this.cb.onOpenSettings(),
     });
-    addLabel(n, 'v0.6.0', 375, 34 + bottom, {
-      fontSize: 17, color: hex('#DFFFFF', 210), outline: hex('#063A50', 190), outlineWidth: 2,
-    });
     n.active = false;
     return n;
   }

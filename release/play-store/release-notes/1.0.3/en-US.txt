@@ -1,0 +1,1 @@
+Updated the home screen for the current release and removed an outdated version label.
