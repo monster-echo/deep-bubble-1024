@@ -83,9 +83,14 @@ ANDROID_SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
 # Prefer the newest supported NDK; only fall back to the absolute newest
 # (with a warning) when nothing <= 27 is installed.
 NDK_VERSION="${ANDROID_NDK_VERSION:-27.2.12479018}"
-ANDROID_NDK="${ANDROID_NDK:-}"
-if [[ -z "$ANDROID_NDK" && -d "$ANDROID_SDK/ndk/$NDK_VERSION" ]]; then
+REQUESTED_ANDROID_NDK="${ANDROID_NDK:-}"
+ANDROID_NDK=""
+if [[ "$REQUESTED_ANDROID_NDK" == */ndk/$NDK_VERSION && -d "$REQUESTED_ANDROID_NDK" ]]; then
+	ANDROID_NDK="$REQUESTED_ANDROID_NDK"
+elif [[ -d "$ANDROID_SDK/ndk/$NDK_VERSION" ]]; then
 	ANDROID_NDK="$ANDROID_SDK/ndk/$NDK_VERSION"
+elif [[ -n "$REQUESTED_ANDROID_NDK" && -d "$REQUESTED_ANDROID_NDK" ]]; then
+	ANDROID_NDK="$REQUESTED_ANDROID_NDK"
 fi
 if [[ -z "$ANDROID_NDK" ]]; then
 	ANDROID_NDK="$(find "$ANDROID_SDK/ndk" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort -V | awk -F/ '$NF + 0 <= 27.99' | tail -1 || true)"
