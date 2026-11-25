@@ -82,7 +82,14 @@ ANDROID_SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
 # std::char_traits<unsigned char>, which the engine bindings still use.
 # Prefer the newest supported NDK; only fall back to the absolute newest
 # (with a warning) when nothing <= 27 is installed.
-ANDROID_NDK="${ANDROID_NDK:-$(find "$ANDROID_SDK/ndk" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort -V | awk -F/ '$NF + 0 <= 27.99' | tail -1 || true)}"
+NDK_VERSION="${ANDROID_NDK_VERSION:-27.2.12479018}"
+ANDROID_NDK="${ANDROID_NDK:-}"
+if [[ -z "$ANDROID_NDK" && -d "$ANDROID_SDK/ndk/$NDK_VERSION" ]]; then
+	ANDROID_NDK="$ANDROID_SDK/ndk/$NDK_VERSION"
+fi
+if [[ -z "$ANDROID_NDK" ]]; then
+	ANDROID_NDK="$(find "$ANDROID_SDK/ndk" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort -V | awk -F/ '$NF + 0 <= 27.99' | tail -1 || true)"
+fi
 if [[ -z "$ANDROID_NDK" ]]; then
 	ANDROID_NDK="$(find "$ANDROID_SDK/ndk" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort -V | tail -1 || true)"
 	[[ -n "$ANDROID_NDK" ]] && echo "::warning::only NDK r28+ found; Cocos 3.8.x supports up to r27 — build may fail"
