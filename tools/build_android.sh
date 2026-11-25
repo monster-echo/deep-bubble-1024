@@ -286,7 +286,19 @@ if [[ -f "$APP_GRADLE" ]]; then
 	sed -i.bak "s/versionCode [0-9]\+/versionCode $BUILD/" "$APP_GRADLE"
 	sed -i.bak "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" "$APP_GRADLE"
 	rm -f "$APP_GRADLE.bak"
+	python3 - "$APP_GRADLE" "$TARGET_SDK" <<'PY'
+from pathlib import Path
+import re, sys
+p = Path(sys.argv[1])
+s = p.read_text()
+s, count = re.subn(r'(?m)^(\s*targetSdkVersion\s+)[^\r\n]+',
+                   lambda match: match.group(1) + sys.argv[2], s, count=1)
+if count != 1:
+    raise SystemExit("Cannot set the generated app targetSdkVersion")
+p.write_text(s)
+PY
 	echo "app/build.gradle: version $VERSION ($BUILD)"
+	echo "app/build.gradle: targetSdkVersion $TARGET_SDK"
 else
 	echo "app/build.gradle not found at $APP_GRADLE" >&2
 	exit 1
