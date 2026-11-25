@@ -164,27 +164,42 @@ if [[ -z "$NATIVE_DIR" || ! -f "$APP_GRADLE" || ! -f "$NATIVE_CMAKE" ]]; then
 	echo "Generated Android native project is missing (NATIVE_DIR=$NATIVE_DIR)" >&2
 	exit 1
 fi
-# Cocos Creator 3.8.6's libcocos module includes an AIDL era Play Billing
-# dependency. Google Play now rejects new apps that contain it. This project
-# has no billing integration; pin the generated dependency to the supported
-# library version so Cocos upgrades do not reintroduce the obsolete artifact.
-python3 - "$NATIVE_DIR" <<'PY'
+# The generated Cocos project marks BILLING in its merged manifest but has no
+# modern BillingClient dependency, so Play classifies it as the obsolete AIDL
+# interface. This game has no in-app purchase code; add the current library so
+# the bundle carries the supported version marker. Force it across generated
+# subprojects in case a future Cocos template adds an older transitive copy.
+python3 - "$TOP_LEVEL_GRADLE" "$APP_GRADLE" <<'PY'
 from pathlib import Path
 import re, sys
 
-root = Path(sys.argv[1])
-pattern = re.compile(r"com\.android\.billingclient:billing(?::[^'\"\s)]+)?")
-changed = []
-for path in root.rglob("*.gradle"):
-    source = path.read_text(errors="replace")
-    updated, count = pattern.subn("com.android.billingclient:billing:8.0.0", source)
-    if count:
-        path.write_text(updated)
-        changed.append((path, count))
-if not changed:
-    raise SystemExit("No generated Play Billing dependency found to upgrade")
-for path, count in changed:
-    print(f"Play Billing 8.0.0: updated {count} dependency in {path}")
+root_gradle, app_gradle = map(Path, sys.argv[1:])
+coordinate = "com.android.billingclient:billing:8.0.0"
+
+root_source = root_gradle.read_text()
+force_block = '''\n\nallprojects {
+    configurations.configureEach {
+        resolutionStrategy.force "com.android.billingclient:billing:8.0.0"
+    }
+}
+'''
+if coordinate not in root_source:
+    root_gradle.write_text(root_source + force_block)
+
+app_source = app_gradle.read_text()
+billing = re.compile(r"com\.android\.billingclient:billing(?::[^'\"\s)]+)?")
+app_source, replaced = billing.subn(coordinate, app_source)
+if not replaced:
+    block = re.search(r"(?m)^\s*dependencies\s*\{", app_source)
+    if not block:
+        raise SystemExit("Cannot add Play Billing 8.0.0 to generated app/build.gradle")
+    app_source = (
+        app_source[:block.end()]
+        + f'\n    implementation "{coordinate}"'
+        + app_source[block.end():]
+    )
+app_gradle.write_text(app_source)
+print(f"Play Billing 8.0.0 enabled in {app_gradle}")
 PY
 if ! grep -q 'com.android.tools.build:gradle:8.7.3' "$TOP_LEVEL_GRADLE"; then
 	echo "Could not upgrade Android Gradle Plugin to 8.7.3" >&2
