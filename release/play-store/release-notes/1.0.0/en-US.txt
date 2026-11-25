@@ -1,0 +1,7 @@
+First release of Deep Bubble 1024.
+
+- Endless mode: reach 1024 to unlock endless depth, chase 2048
+- Drag to aim, oscillating power bar sets your shot
+- Soft-body drops squeeze through gaps and merge on contact
+- Three power-ups: drain, melt, magnet
+- No sign-in, playable offline, progress stays on device

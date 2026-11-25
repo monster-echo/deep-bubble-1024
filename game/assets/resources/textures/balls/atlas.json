@@ -1,0 +1,156 @@
+{
+  "2048": {
+    "rect": [
+      4,
+      4,
+      409,
+      406
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      409,
+      406
+    ],
+    "displayScale": 1.0568
+  },
+  "1024": {
+    "rect": [
+      417,
+      4,
+      326,
+      358
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      326,
+      358
+    ],
+    "displayScale": 1.0654
+  },
+  "512": {
+    "rect": [
+      4,
+      414,
+      340,
+      338
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      340,
+      338
+    ],
+    "displayScale": 1.0625
+  },
+  "256": {
+    "rect": [
+      348,
+      414,
+      283,
+      282
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      283,
+      282
+    ],
+    "displayScale": 1.0599
+  },
+  "128": {
+    "rect": [
+      635,
+      414,
+      228,
+      228
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      228,
+      228
+    ],
+    "displayScale": 1.0654
+  },
+  "64": {
+    "rect": [
+      4,
+      756,
+      200,
+      200
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      200,
+      200
+    ],
+    "displayScale": 1.0753
+  },
+  "32": {
+    "rect": [
+      208,
+      756,
+      172,
+      172
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      172,
+      172
+    ],
+    "displayScale": 1.075
+  },
+  "8": {
+    "rect": [
+      384,
+      756,
+      146,
+      144
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      146,
+      144
+    ],
+    "displayScale": 1.0896
+  },
+  "16": {
+    "rect": [
+      534,
+      756,
+      146,
+      144
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      146,
+      144
+    ],
+    "displayScale": 1.0896
+  },
+  "2": {
+    "rect": [
+      684,
+      756,
+      116,
+      116
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      116,
+      116
+    ],
+    "displayScale": 1.0943
+  },
+  "4": {
+    "rect": [
+      804,
+      756,
+      116,
+      116
+    ],
+    "atlas": "balls.png",
+    "sourceSize": [
+      116,
+      116
+    ],
+    "displayScale": 1.0943
+  }
+}
