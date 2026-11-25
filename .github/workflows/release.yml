@@ -19,6 +19,8 @@ env:
   COCOS_VERSION: 3.8.6
   COCOS_ZIP: CocosCreator-v3.8.6-mac-032501.zip
   ANDROID_NDK_VERSION: 27.2.12479018
+  ANDROID_COMPILE_SDK_VERSION: 36
+  ANDROID_TARGET_SDK_VERSION: 36
 
 jobs:
   android:
@@ -42,7 +44,7 @@ jobs:
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;${ANDROID_NDK_VERSION}"
+          sdkmanager "platforms;android-${ANDROID_COMPILE_SDK_VERSION}" "build-tools;35.0.0" "ndk;${ANDROID_NDK_VERSION}"
 
       - name: Restore Cocos Creator
         id: cocos-cache
@@ -103,6 +105,8 @@ jobs:
       - name: Build Android package
         env:
           STAGE: ${{ inputs.dry_run && 'debug' || 'release' }}
+          TARGET_SDK: ${{ env.ANDROID_TARGET_SDK_VERSION }}
+          COMPILE_SDK: ${{ env.ANDROID_COMPILE_SDK_VERSION }}
           GRADLE_OPTS: -Dorg.gradle.daemon=false
         run: ./tools/build_android.sh
 

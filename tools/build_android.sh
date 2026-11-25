@@ -24,7 +24,8 @@ if [[ -f "$ROOT/release.env" ]]; then
 	source "$ROOT/release.env"
 fi
 STAGE="${STAGE:-release}"
-TARGET_SDK="${TARGET_SDK:-35}"
+TARGET_SDK="${TARGET_SDK:-36}"
+COMPILE_SDK="${COMPILE_SDK:-36}"
 MIN_SDK="${MIN_SDK:-24}"
 APP_ABI="${APP_ABI:-arm64-v8a}"
 APP_NAME="${APP_NAME:-deepbubble1024}"
@@ -144,7 +145,7 @@ fi
 echo "project: $PROJ_DIR"
 
 # Google Play requires 16 KB page-size support. Cocos 3.8.6 generates an
-# Android Gradle Plugin 8.0.2 project; upgrade it to AGP 8.7.3 / Gradle 8.9
+# Android Gradle Plugin 8.0.2 project; upgrade it to AGP 8.10.1 / Gradle 8.11.1
 # and pin NDK r27, then pass the required ELF alignment flags to the linker.
 TOP_LEVEL_GRADLE="$PROJ_DIR/build.gradle"
 WRAPPER_PROPERTIES="$PROJ_DIR/gradle/wrapper/gradle-wrapper.properties"
@@ -152,9 +153,9 @@ if [[ ! -f "$TOP_LEVEL_GRADLE" || ! -f "$WRAPPER_PROPERTIES" ]]; then
 	echo "Generated Gradle build files are missing" >&2
 	exit 1
 fi
-sed -i.bak 's/com.android.tools.build:gradle:8.0.2/com.android.tools.build:gradle:8.7.3/' "$TOP_LEVEL_GRADLE"
+sed -i.bak 's/com.android.tools.build:gradle:8.0.2/com.android.tools.build:gradle:8.10.1/' "$TOP_LEVEL_GRADLE"
 rm -f "$TOP_LEVEL_GRADLE.bak"
-sed -i.bak 's/gradle-8.0.2-bin.zip/gradle-8.9-bin.zip/' "$WRAPPER_PROPERTIES"
+sed -i.bak 's/gradle-8.0.2-bin.zip/gradle-8.11.1-bin.zip/' "$WRAPPER_PROPERTIES"
 rm -f "$WRAPPER_PROPERTIES.bak"
 
 NATIVE_DIR="$(sed -n 's/^NATIVE_DIR=//p' "$PROJ_DIR/gradle.properties" | head -1)"
@@ -201,8 +202,8 @@ if not replaced:
 app_gradle.write_text(app_source)
 print(f"Play Billing 8.0.0 enabled in {app_gradle}")
 PY
-if ! grep -q 'com.android.tools.build:gradle:8.7.3' "$TOP_LEVEL_GRADLE"; then
-	echo "Could not upgrade Android Gradle Plugin to 8.7.3" >&2
+if ! grep -q 'com.android.tools.build:gradle:8.10.1' "$TOP_LEVEL_GRADLE"; then
+	echo "Could not upgrade Android Gradle Plugin to 8.10.1" >&2
 	exit 1
 fi
 if grep -q 'ndkVersion ' "$APP_GRADLE"; then
@@ -253,6 +254,8 @@ set_prop() {
 
 echo "== patch gradle.properties / manifest"
 set_prop PROP_TARGET_SDK_VERSION "$TARGET_SDK"
+set_prop PROP_COMPILE_SDK_VERSION "$COMPILE_SDK"
+set_prop PROP_BUILD_TOOLS_VERSION 35.0.0
 set_prop PROP_MIN_SDK_VERSION "$MIN_SDK"
 set_prop PROP_APP_ABI "$APP_ABI"
 
