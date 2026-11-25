@@ -7,6 +7,7 @@ import pathlib
 import sys
 import time
 import urllib.request
+import urllib.error
 
 NOTES_ROOT = pathlib.Path(__file__).resolve().parent.parent / "release/play-store/release-notes"
 
@@ -79,9 +80,15 @@ def main() -> int:
             method=method,
             headers={**headers, "Content-Type": content_type},
         )
-        with urllib.request.urlopen(request, timeout=300) as response:
-            raw = response.read()
-            return json.loads(raw) if raw else {}
+        try:
+            with urllib.request.urlopen(request, timeout=300) as response:
+                raw = response.read()
+                return json.loads(raw) if raw else {}
+        except urllib.error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            raise SystemExit(
+                f"Google Play API {error.code} {error.reason}: {detail}"
+            ) from None
 
     notes = release_notes(args.version)
     edit = call("POST", "/edits")["id"]
@@ -92,8 +99,14 @@ def main() -> int:
         method="POST",
         headers={**headers, "Content-Type": "application/octet-stream"},
     )
-    with urllib.request.urlopen(bundle_request, timeout=600) as response:
-        bundle = json.load(response)
+    try:
+        with urllib.request.urlopen(bundle_request, timeout=600) as response:
+            bundle = json.load(response)
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise SystemExit(
+            f"Google Play bundle upload {error.code} {error.reason}: {detail}"
+        ) from None
     version_code = str(bundle["versionCode"])
     internal = {
         "name": f"{args.version} ({version_code}) internal",

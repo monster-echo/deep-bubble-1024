@@ -164,6 +164,28 @@ if [[ -z "$NATIVE_DIR" || ! -f "$APP_GRADLE" || ! -f "$NATIVE_CMAKE" ]]; then
 	echo "Generated Android native project is missing (NATIVE_DIR=$NATIVE_DIR)" >&2
 	exit 1
 fi
+# Cocos Creator 3.8.6's libcocos module includes an AIDL era Play Billing
+# dependency. Google Play now rejects new apps that contain it. This project
+# has no billing integration; pin the generated dependency to the supported
+# library version so Cocos upgrades do not reintroduce the obsolete artifact.
+python3 - "$NATIVE_DIR" <<'PY'
+from pathlib import Path
+import re, sys
+
+root = Path(sys.argv[1])
+pattern = re.compile(r"com\.android\.billingclient:billing(?::[^'\"\s)]+)?")
+changed = []
+for path in root.rglob("*.gradle"):
+    source = path.read_text(errors="replace")
+    updated, count = pattern.subn("com.android.billingclient:billing:8.0.0", source)
+    if count:
+        path.write_text(updated)
+        changed.append((path, count))
+if not changed:
+    raise SystemExit("No generated Play Billing dependency found to upgrade")
+for path, count in changed:
+    print(f"Play Billing 8.0.0: updated {count} dependency in {path}")
+PY
 if ! grep -q 'com.android.tools.build:gradle:8.7.3' "$TOP_LEVEL_GRADLE"; then
 	echo "Could not upgrade Android Gradle Plugin to 8.7.3" >&2
 	exit 1
