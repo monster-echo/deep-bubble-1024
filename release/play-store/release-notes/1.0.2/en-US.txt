@@ -1,0 +1,1 @@
+Added an in-game privacy policy link and corrected Android release version metadata.

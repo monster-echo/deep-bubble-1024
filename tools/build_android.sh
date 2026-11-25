@@ -284,23 +284,35 @@ if [[ -z "$MAIN_MANIFEST" ]]; then
 fi
 # The template hardcodes versionCode/versionName in defaultConfig and
 # ignores AGP's android.injected.version.* properties — rewrite them in the
-# generated file (regenerated on every Cocos build, so idempotent).
+# generated file (regenerated on every Cocos build, so idempotent). Use Python
+# rather than sed extensions: CI runs on macOS where BSD sed does not support
+# GNU's \+ quantifier and can silently leave versionCode at the template value.
 if [[ -f "$APP_GRADLE" ]]; then
-	sed -i.bak "s/versionCode [0-9]\+/versionCode $BUILD/" "$APP_GRADLE"
-	sed -i.bak "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" "$APP_GRADLE"
-	rm -f "$APP_GRADLE.bak"
-	python3 - "$APP_GRADLE" "$TARGET_SDK" <<'PY'
+	python3 - "$APP_GRADLE" "$BUILD" "$VERSION" "$TARGET_SDK" <<'PY'
 from pathlib import Path
 import re, sys
 p = Path(sys.argv[1])
 s = p.read_text()
-s, count = re.subn(r'(?m)^(\s*targetSdkVersion\s+)[^\r\n]+',
-                   lambda match: match.group(1) + sys.argv[2], s, count=1)
-if count != 1:
+build, version, target_sdk = sys.argv[2:]
+s, code_count = re.subn(r'(?m)^(\s*versionCode\s+)\d+\b',
+                        lambda match: match.group(1) + build, s)
+s, name_count = re.subn(r'(?m)^(\s*versionName\s+)["\'][^"\']*["\']',
+                        lambda match: match.group(1) + '"' + version + '"', s)
+s, sdk_count = re.subn(r'(?m)^(\s*targetSdkVersion\s+)[^\r\n]+',
+                       lambda match: match.group(1) + target_sdk, s, count=1)
+if code_count != 1:
+    raise SystemExit(f"Expected exactly one versionCode declaration, found {code_count}")
+if name_count != 1:
+    raise SystemExit(f"Expected exactly one versionName declaration, found {name_count}")
+if sdk_count != 1:
     raise SystemExit("Cannot set the generated app targetSdkVersion")
 p.write_text(s)
 PY
-	echo "app/build.gradle: version $VERSION ($BUILD)"
+	if ! grep -Eq "^[[:space:]]*versionCode[[:space:]]+$BUILD([[:space:]]|$)" "$APP_GRADLE"; then
+		echo "Generated app/build.gradle versionCode does not match build $BUILD" >&2
+		exit 1
+	fi
+	echo "app/build.gradle: version $VERSION ($BUILD), versionCode verified"
 	echo "app/build.gradle: targetSdkVersion $TARGET_SDK"
 else
 	echo "app/build.gradle not found at $APP_GRADLE" >&2
@@ -369,23 +381,6 @@ if [[ -z "$AAB" ]]; then
 	exit 1
 fi
 cp "$AAB" "$OUT_DIR/$APP_NAME-release.aab"
-
-echo "== verify versionCode"
-AAPT2="$(find "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/nonexistent}}" \
-	-build-tools -name aapt2 -type f -print 2>/dev/null | sort -V | tail -1 || true)"
-if [[ -n "$AAPT2" ]]; then
-	CODE="$("$AAPT2" dump badging "$OUT_DIR/$APP_NAME-release.aab" 2>/dev/null \
-		| head -1 | sed -n 's/.*versionCode=.\([0-9]*\).*/\1/p')"
-	if [[ "$CODE" == "$BUILD" ]]; then
-		echo "versionCode $CODE matches build $BUILD"
-	else
-		echo "versionCode mismatch: AAB says '$CODE', expected '$BUILD' \
-(injected properties may be ignored by this template)" >&2
-		exit 1
-	fi
-else
-	echo "aapt2 not found; skipping versionCode check (play_upload will print it)"
-fi
 
 echo
 echo "AAB: $OUT_DIR/$APP_NAME-release.aab (version $VERSION build $BUILD)"
