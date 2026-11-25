@@ -36,7 +36,9 @@ eval "$(python3 "$ROOT/tools/set_versions.py" get)"
 VERSION="${VERSION:-$version}"
 BUILD="${BUILD:-$build}"
 BUILD_DIR="$ROOT/game/build-android"
-PROJ_DIR="$BUILD_DIR/proj"
+# Cocos Creator's buildPath points at the build root; with platform outputName
+# set to "android", the Gradle project is nested below build-android/android.
+PROJ_DIR="$BUILD_DIR/android/proj"
 OUT_DIR="$ROOT/export/android"
 
 find_cocos() {
