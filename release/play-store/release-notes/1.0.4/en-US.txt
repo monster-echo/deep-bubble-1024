@@ -1,0 +1,1 @@
+Removed the outdated prototype version label from the loading screen.

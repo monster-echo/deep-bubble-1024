@@ -118,7 +118,6 @@ export class Bootstrap extends Component {
     this.setProgress(0, '开始加载');
     this.pct = addLabel(n, '0%', 375, h / 2 - 46, { fontSize: 20, color: hex('#BFF8FF') });
     this.label = addLabel(n, '开始加载', 375, h / 2 - 80, { fontSize: 17, color: hex('#9FE9F2', 190) });
-    addLabel(n, 'v0.6 · M2', 375, 40, { fontSize: 16, color: hex('#9FE9F2', 150) });
   }
 
   private setProgress(p: number, text: string): void {
