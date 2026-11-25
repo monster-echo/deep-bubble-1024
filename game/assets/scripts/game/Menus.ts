@@ -2,7 +2,7 @@
  * 全屏页面：主页 / 设置 / 暂停 / 败北复活 / 结算 / 新手教学 / 1024 演出 / toast。
  * 全部运行时构建；页面以屏幕左下角为原点，按实际可见高度自适应。
  */
-import { Graphics, Label, Node, Sprite, UIOpacity } from 'cc';
+import { Graphics, Label, Node, Sprite, sys, UIOpacity } from 'cc';
 import { BALL_COLORS } from '../core/Config';
 import type { RunResult } from '../core/Types';
 import type { AssetHub } from './AssetHub';
@@ -23,6 +23,8 @@ import {
   setButtonEnabled,
   setButtonLabel,
 } from './UiKit';
+
+const PRIVACY_POLICY_URL = 'https://deep-bubble-legal.pages.dev/privacy/';
 
 export interface ResultSummary {
   result: RunResult;
@@ -278,7 +280,11 @@ export class Menus {
       x: 0, y: -316, width: 280, height: 72, text: '完成', fontSize: 28, frame: this.assets.ui.button_gold!,
       onClick: () => this.cb.onCloseSettings(),
     });
-    addLabel(p, '设置只保存在本机', 0, -384, { fontSize: 16, color: hex('#9FE9F2', 170) });
+    addButton(p, {
+      x: 0, y: -382, width: 300, height: 44, text: '隐私政策 Privacy', fontSize: 17,
+      frame: this.assets.ui.button_glass!,
+      onClick: () => sys.openURL(PRIVACY_POLICY_URL),
+    });
     void dim;
     n.active = false;
     return n;
